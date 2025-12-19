@@ -22,18 +22,19 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
 
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://ecomputer-store.vercel.app",
-];
+const allowedOrigins = [process.env.CLIENT_URL, process.env.ADMIN_URL].filter(
+  Boolean
+); // removes undefined values
 
 app.use(
   cors({
     origin: (origin, cb) => {
-      // allow requests with no origin (Postman, curl, server-to-server)
+      // Allow requests without origin (Postman, curl, server-to-server)
       if (!origin) return cb(null, true);
 
-      if (allowedOrigins.includes(origin)) return cb(null, true);
+      if (allowedOrigins.includes(origin)) {
+        return cb(null, true);
+      }
 
       return cb(new Error("Not allowed by CORS"), false);
     },
