@@ -36,6 +36,7 @@ exports.uploadImage = asyncHandler(async (req, res) => {
   const result = await uploadBufferToCloudinary({ buffer: req.file.buffer, folder });
 
   res.status(201).json({
+    url: result.secure_url,
     imageUrl: result.secure_url,
     public_id: result.public_id,
     width: result.width,
@@ -59,6 +60,7 @@ exports.uploadImages = asyncHandler(async (req, res) => {
   for (const f of req.files) {
     const r = await uploadBufferToCloudinary({ buffer: f.buffer, folder });
     results.push({
+      url: r.secure_url,
       imageUrl: r.secure_url,
       public_id: r.public_id,
       width: r.width,

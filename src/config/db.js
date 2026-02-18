@@ -3,6 +3,9 @@ const mongoose = require("mongoose");
 const connectDB = async (mongoUri) => {
   try {
     await mongoose.connect(mongoUri);
+
+    console.log("autoIndex:", mongoose.get("autoIndex"));
+    console.log("NODE_ENV:", process.env.NODE_ENV);
     console.log("✅ MongoDB connected");
   } catch (err) {
     console.error("❌ MongoDB connection error:", err.message);

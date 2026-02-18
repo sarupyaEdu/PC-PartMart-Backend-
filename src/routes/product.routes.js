@@ -3,11 +3,16 @@ const p = require("../controllers/product.controller");
 const { protect, requireRole } = require("../middleware/auth.middleware");
 
 router.get("/", p.list);
+router.get("/admin", protect, requireRole("admin"), p.listAdmin);
+router.post("/bulk", p.bulk);
+
+router.get("/tags", p.listTags);
+
 router.delete(
   "/:productId/image",
   protect,
   requireRole("admin"),
-  p.removeProductImage
+  p.removeProductImage,
 );
 
 router.get("/:slug", p.getBySlug);

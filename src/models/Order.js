@@ -8,10 +8,23 @@ const orderItemSchema = new mongoose.Schema(
       required: true,
     },
     titleSnapshot: { type: String, required: true },
+    slugSnapshot: String,
     priceSnapshot: { type: Number, required: true, min: 0 },
+    // ✅ NEW: for showing strike price / discount breakdown later
+    strikeSnapshot: { type: Number, default: 0, min: 0 },
+    typeSnapshot: { type: String, default: "SINGLE" }, // optional but useful
+    offerSnapshot: { type: String, default: "NONE" }, // "NONE" | "DISCOUNT" | "TIMED"
+
+    imageSnapshot: { type: String, default: "" },
+
     qty: { type: Number, required: true, min: 1 },
+
+    // ✅ item-level progress
+    cancelledQty: { type: Number, default: 0, min: 0 },
+    returnedQty: { type: Number, default: 0, min: 0 },
+    replacedQty: { type: Number, default: 0, min: 0 },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const orderSchema = new mongoose.Schema(
@@ -65,7 +78,22 @@ const orderSchema = new mongoose.Schema(
         default: "NONE",
       },
       reason: { type: String, default: "" },
-      note: { type: String, default: "" }, // optional customer notes
+      note: { type: String, default: "" },
+
+      items: {
+        type: [
+          {
+            productId: {
+              type: mongoose.Schema.Types.ObjectId,
+              ref: "Product",
+              required: true,
+            },
+            qty: { type: Number, required: true, min: 1 },
+          },
+        ],
+        default: [], // ✅ add this
+      },
+
       status: {
         type: String,
         enum: ["NONE", "REQUESTED", "APPROVED", "REJECTED", "COMPLETED"],
@@ -80,7 +108,7 @@ const orderSchema = new mongoose.Schema(
     payment: {
       method: {
         type: String,
-        enum: ["COD", "UPI", "CARD", "REPLACEMENT"],
+        enum: ["COD", "RAZORPAY", "REPLACEMENT"],
         default: "COD",
       },
       status: {
@@ -88,8 +116,14 @@ const orderSchema = new mongoose.Schema(
         enum: ["PENDING", "PAID", "FAILED", "REFUNDED"],
         default: "PENDING",
       },
-      txnId: { type: String },
+      txnId: { type: String, default: null }, // for any external payment reference
       note: { type: String, default: "" }, // ✅ add this
+    },
+
+    razorpay: {
+      orderId: { type: String, default: null }, // rzp_order_xxx
+      paymentId: { type: String, default: null }, // rzp_payment_xxx
+      signature: { type: String, default: null },
     },
 
     status: {
@@ -113,8 +147,24 @@ const orderSchema = new mongoose.Schema(
         note: String,
       },
     ],
+    // models/Order.js
+    salesCounted: { type: Boolean, default: false },
+    salesRolledBackQty: { type: Number, default: 0, min: 0 },
+    salesRolledBack: {
+      type: [
+        {
+          productId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Product",
+            required: true,
+          },
+          qty: { type: Number, required: true, min: 0 },
+        },
+      ],
+      default: [],
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 module.exports = mongoose.model("Order", orderSchema);
